@@ -47,3 +47,15 @@ int target_page;
 int found_frame = -1;
 int found_index = -1;
 pthread_mutex_t tlb_mutex = PTHREAD_MUTEX_INITIALIZER;
+
+// Função das Threads
+void* search_tlb_thread(void* arg) {
+    int i = *(int*)arg;
+    if (tlb[i].valid && tlb[i].page_number == target_page) {
+        pthread_mutex_lock(&tlb_mutex);
+        found_frame = tlb[i].frame_number;
+        found_index = i;
+        pthread_mutex_unlock(&tlb_mutex);
+    }
+    return NULL;
+}
