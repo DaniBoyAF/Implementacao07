@@ -1,0 +1,70 @@
+Script started on 2026-11-24 22:40:36-03:00 [COMMAND="bash /tmp/claude-0/-home-claude/dfc4cdfa-34c1-5d4f-9a93-90611deab76d/scratchpad/sessao.sh" <not executed on terminal>]
+NOTA: esta sessao foi executada pelo assistente Claude (IA) em um conteiner Linux na nuvem,
+      NAO pelo aluno no computador dele. Nao representa a sessao do aluno.
+Tue Nov 24 22:40:36 -03 2026
+root
+/tmp/claude-0/-home-claude/dfc4cdfa-34c1-5d4f-9a93-90611deab76d/scratchpad/run_final/dafs
+
+##### PARTE A - versao antiga (commit 4e071f0): reproducao do bug
+1
+Execução concluída. Verifique o arquivo 'correct.txt'.
+  linhas incorretas: 2517 de 3000 | page faults programa/referência: 1335/763 | TLB hits programa/referência: 1584/1584
+  RESULTADO: FALHOU
+
+##### PARTE B - versao final (dafs.tar)
+##### 1. Compilação
+gcc -Wall -Wextra -O2 -pthread  -o vm vm.c
+
+##### 2. Fluxo completo (128 frames, TLB com threads)
+== página=fifo tlb=fifo
+  linhas incorretas: 0 de 3000 | page faults programa/referência: 746/746 | TLB hits programa/referência: 1577/1577
+  RESULTADO: OK
+== página=fifo tlb=lru
+  linhas incorretas: 0 de 3000 | page faults programa/referência: 746/746 | TLB hits programa/referência: 1616/1616
+  RESULTADO: OK
+== página=lru tlb=fifo
+  linhas incorretas: 0 de 3000 | page faults programa/referência: 763/763 | TLB hits programa/referência: 1584/1584
+  RESULTADO: OK
+== página=lru tlb=lru
+  linhas incorretas: 0 de 3000 | page faults programa/referência: 763/763 | TLB hits programa/referência: 1623/1623
+  RESULTADO: OK
+
+##### 3. Etapas de desenvolvimento (macros de compilação)
+== sem TLB, 256 frames
+  linhas incorretas: 0 de 3000 | page faults programa/referência: 256/256 | TLB hits programa/referência: 0/0
+  RESULTADO: OK
+== sem TLB, 128 frames, FIFO
+  linhas incorretas: 0 de 3000 | page faults programa/referência: 746/746 | TLB hits programa/referência: 0/0
+  RESULTADO: OK
+== sem TLB, 128 frames, LRU
+  linhas incorretas: 0 de 3000 | page faults programa/referência: 763/763 | TLB hits programa/referência: 0/0
+  RESULTADO: OK
+== TLB sem thread, FIFO/FIFO
+  linhas incorretas: 0 de 3000 | page faults programa/referência: 746/746 | TLB hits programa/referência: 1577/1577
+  RESULTADO: OK
+== TLB sem thread, LRU/LRU
+  linhas incorretas: 0 de 3000 | page faults programa/referência: 763/763 | TLB hits programa/referência: 1623/1623
+  RESULTADO: OK
+
+##### 4. Tratamento de erro
+== erro esperado: sem argumentos -> código 1: Erro: uso: ./vm <arquivo_enderecos> <fifo|lru> <fifo|lru>
+== erro esperado: argumentos a mais -> código 1: Erro: uso: ./vm <arquivo_enderecos> <fifo|lru> <fifo|lru>
+== erro esperado: algoritmo de página inválido -> código 1: Erro: algoritmo de página 'abc' inválido (use fifo ou lru).
+== erro esperado: algoritmo de TLB inválido -> código 1: Erro: algoritmo de TLB 'xyz' inválido (use fifo ou lru).
+== erro esperado: arquivo inexistente -> código 1: Erro: o arquivo de endereços 'nao_existe.txt' não existe.
+== erro esperado: arquivo é uma pasta -> código 1: Erro: 'pasta.tmp' não é um arquivo regular.
+== erro esperado: arquivo vazio -> código 1: Erro: o arquivo de endereços 'vazio.tmp' está vazio.
+== erro esperado: conteúdo não numérico -> código 1: Erro: formato inválido na linha 1 do arquivo de endereços (esperado um inteiro).
+== erro esperado: endereço acima de 65535 -> código 1: Erro: endereço 70000 na linha 1 fora do intervalo 0 a 65535.
+== erro esperado: endereço negativo -> código 1: Erro: endereço -5 na linha 1 fora do intervalo 0 a 65535.
+== erro esperado: dois valores na linha -> código 1: Erro: formato inválido na linha 2 do arquivo de endereços (esperado um inteiro por linha).
+
+##### 5. 100 execuções seguidas (detecção de condição de corrida)
+100 execuções concluídas sem falha
+
+##### 6. ThreadSanitizer (opcional)
+ThreadSanitizer: sem avisos
+
+TODOS OS TESTES PASSARAM
+
+Script done on 2026-11-24 22:42:57-03:00 [COMMAND_EXIT_CODE="0"]
